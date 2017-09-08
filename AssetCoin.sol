@@ -427,29 +427,3 @@ contract AssetBasedToken is Ownable, SafeMath, ERC20, Pausable {
   	function allowance(address _owner, address _spender) constant returns (uint remaining) {
     	return allowed[_owner][_spender];
   	}
-
-	// Minting Functions
-	address public authorisedMinter;
-
-	function setMinter(address minter) onlyOwner {
-		authorisedMinter = minter;
-	}
-
-	function mintTokens(address destination, uint256 amount) {
-		require(msg.sender == authorisedMinter);
-		update(destination);
-		balances[destination].amount = safeAdd(balances[destination].amount, amount);
-		balances[destination].lastUpdated = now;
-		balances[destination].nextAllocationIndex = currentAllocations.length;
-		TokenMinted(destination,amount);
-	}
-
-	function burnTokens(address source, uint256 amount) {
-		require(msg.sender == authorisedMinter);
-		update(source);
-		balances[source].amount = safeSub(balances[source].amount,amount);
-		balances[source].lastUpdated = now;
-		balances[source].nextAllocationIndex = currentAllocations.length;
-		TokenBurned(source,amount);
-	}
-}
