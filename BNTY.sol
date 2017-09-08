@@ -35,6 +35,7 @@ contract BountyToken {
   address public owner;
   uint256 public lockedUntilBlock;
 
+
   function BountyToken(
     uint256 _initialAmount,
     string _tokenName,
