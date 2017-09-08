@@ -153,7 +153,7 @@ contract StandardToken is ERC20, BasicToken {
  * Note they can later distribute these tokens as they wish using `transfer` and other
  * `StandardToken` functions.
  */
- 
+
 /*************** Ownable
 ***/
 
@@ -166,7 +166,7 @@ contract Ownable {
 
   modifier onlyOwner() {
     require(msg.sender == owner);
-    
+
     _;
   }
 
@@ -194,16 +194,16 @@ contract AssetBasedToken is Ownable, SafeMath, ERC20, Pausable {
 
   event TokenMinted(address destination, uint256 amount);
   event TokenBurned(address source, uint256 amount);
-  
+
 	string public name = "AssetBasedToken";
 	string public symbol = "AST";
-	uint256 constant public  decimals = 18;  // same as ETH
-	uint256 constant public  ASETDecimals = 8;
-		
+	uint256 constant public  decimals = 2;  // same as ETH
+	uint256 constant public  ASETDecimals = 2;
+
 	uint256 constant public allocationPool = 1 *  10**9 * 10**ASETDecimals;      // total ASET holdings
 	uint256	constant public	maxAllocation  = 38 * 10**5 * 10**decimals;			// max AST that can ever ever be given out
 	uint256	         public	totAllocation;			// amount of AST so far
-	
+
 	address			 public feeCalculator;
 	address		     public ASET;					// ASET contract address
 
@@ -222,11 +222,11 @@ contract AssetBasedToken is Ownable, SafeMath, ERC20, Pausable {
 		feeCalculator = feeCalc;
 	}
 
-    struct allocation { 
+    struct allocation {
         uint256     amount;
         uint256     date;
     }
-	
+
 	allocation[]   public allocationsOverTime;
 	allocation[]   public currentAllocations;
 
@@ -238,7 +238,7 @@ contract AssetBasedToken is Ownable, SafeMath, ERC20, Pausable {
 		return allocationsOverTime.length;
 	}
 
-	
+
     struct Balance {
         uint256 amount;                 // amount through update or transfer
         uint256 lastUpdated;            // DATE last updated
@@ -249,7 +249,7 @@ contract AssetBasedToken is Ownable, SafeMath, ERC20, Pausable {
 	/*Creates an array with all balances*/
 	mapping (address => Balance) public balances;
 	mapping (address => mapping (address => uint)) allowed;
-	
+
 	function update(address where) internal {
         uint256 pos;
 		uint256 fees;
@@ -259,7 +259,7 @@ contract AssetBasedToken is Ownable, SafeMath, ERC20, Pausable {
 	    balances[where].amount = val;
         balances[where].lastUpdated = now;
 	}
-	
+
 	function updatedBalance(address where) constant public returns (uint val, uint fees, uint pos) {
 		uint256 c_val;
 		uint256 c_fees;
@@ -274,7 +274,7 @@ contract AssetBasedToken is Ownable, SafeMath, ERC20, Pausable {
 
 			(c_val,c_fees)   = calcFees(currentAllocations[balances[where].nextAllocationIndex].date,now,c_amount);
 
-		} 
+		}
 
 	    val  += c_val;
 		fees += c_fees;
@@ -343,7 +343,7 @@ contract AssetBasedToken is Ownable, SafeMath, ERC20, Pausable {
 			partAllocations[partPos].amount += partAllocations[partL - 1].amount;
 			partAllocations[partPos].date    = now;
 			if ((partPos == 0) || (partPos == partAllocations.length-numSteps)){
-				break; 
+				break;
 			}
 		}
 		if (partPos != 0) {
@@ -365,7 +365,7 @@ contract AssetBasedToken is Ownable, SafeMath, ERC20, Pausable {
 			partAllocations[partPos].amount += partAllocations[partL - 1].amount;
 			partAllocations[partPos].date    = now;
 			if (partPos == 0) {
-				break; 
+				break;
 			}
 		}
 		if (partPos != 0) {
@@ -384,18 +384,18 @@ contract AssetBasedToken is Ownable, SafeMath, ERC20, Pausable {
 
 	function parentFees(address where) whenNotPaused {
 		require(msg.sender == ASET);
-	    update(where);		
+	    update(where);
 	}
-	
+
 	function parentChange(address where, uint newValue) whenNotPaused { // called when ASET balance changes
 		require(msg.sender == ASET);
 	    balances[where].allocationShare = newValue;
 	}
-	
+
 	/* send AST */
 	function transfer(address _to, uint256 _value) whenNotPaused returns (bool ok) {
 	    update(msg.sender);              // Do this to ensure sender has enough funds.
-		update(_to); 
+		update(_to);
 
         balances[msg.sender].amount = safeSub(balances[msg.sender].amount, _value);
         balances[_to].amount = safeAdd(balances[_to].amount, _value);
@@ -408,7 +408,7 @@ contract AssetBasedToken is Ownable, SafeMath, ERC20, Pausable {
 		var _allowance = allowed[_from][msg.sender];
 
 	    update(_from);              // Do this to ensure sender has enough funds.
-		update(_to); 
+		update(_to);
 
 		balances[_to].amount = safeAdd(balances[_to].amount, _value);
 		balances[_from].amount = safeSub(balances[_from].amount, _value);
@@ -428,13 +428,13 @@ contract AssetBasedToken is Ownable, SafeMath, ERC20, Pausable {
     	return allowed[_owner][_spender];
   	}
 
-	// Minting Functions 
+	// Minting Functions
 	address public authorisedMinter;
 
 	function setMinter(address minter) onlyOwner {
 		authorisedMinter = minter;
 	}
-	
+
 	function mintTokens(address destination, uint256 amount) {
 		require(msg.sender == authorisedMinter);
 		update(destination);
