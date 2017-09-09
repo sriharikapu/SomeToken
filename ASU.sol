@@ -1,6 +1,7 @@
 //! BasicCoin ECR20-compliant token contract
 //! By Parity Team (Ethcore), 2016.
 //! Released under the Apache Licence 2.
+//| @Harpreet
 
 pragma solidity ^0.4.1;
 
