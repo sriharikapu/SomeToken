@@ -4,7 +4,7 @@ pragma solidity ^0.4.8;
 contract SafeMath {
 
   function assert(bool assertion) internal {
-    if (!assertion) throw;
+    if (!assertion) return;
   }
 
   function safeMul(uint a, uint b) internal returns (uint) {
@@ -25,13 +25,7 @@ contract SafeMath {
 
 contract StandardTokenProtocol {
 
-    function totalSupply() constant returns (uint256 totalSupply) {}
-    function balanceOf(address _owner) constant returns (uint256 balance) {}
-    function transfer(address _recipient, uint256 _value) returns (bool success) {}
-    function transferFrom(address _from, address _recipient, uint256 _value) returns (bool success) {}
-    function approve(address _spender, uint256 _value) returns (bool success) {}
-    function allowance(address _owner, address _spender) constant returns (uint256 remaining) {}
-
+  
     event Transfer(address indexed _from, address indexed _recipient, uint256 _value);
     event Approval(address indexed _owner, address indexed _spender, uint256 _value);
 
@@ -115,28 +109,28 @@ contract GUPToken is StandardToken {
 	//MODIFIERS
 	//Can only be called by contribution contract.
 	modifier only_minter {
-		if (msg.sender != minter) throw;
+		if (msg.sender != minter) return;
 		_;
 	}
 
 	// Can only be called if illiquid tokens may be transformed into liquid.
 	// This happens when `LOCKOUT_PERIOD` of time passes after `endMintingTime`.
 	modifier when_thawable {
-		if (now < endMintingTime + LOCKOUT_PERIOD) throw;
+		if (now < endMintingTime + LOCKOUT_PERIOD) return;
 		_;
 	}
 
 	// Can only be called if (liquid) tokens may be transferred. Happens
 	// immediately after `endMintingTime`.
 	modifier when_transferable {
-		if (now < endMintingTime) throw;
+		if (now < endMintingTime) return;
 		_;
 	}
 
 	// Can only be called if the `crowdfunder` is allowed to mint tokens. Any
 	// time before `endMintingTime`.
 	modifier when_mintable {
-		if (now >= endMintingTime) throw;
+		if (now >= endMintingTime) return;
 		_;
 	}
 
@@ -245,31 +239,31 @@ contract Contribution is SafeMath {
 
 	//Is currently in the period after the private start time and before the public start time.
 	modifier is_pre_crowdfund_period() {
-		if (now >= publicStartTime || now < privateStartTime) throw;
+		if (now >= publicStartTime || now < privateStartTime) return;
 		_;
 	}
 
 	//Is currently the crowdfund period
 	modifier is_crowdfund_period() {
-		if (now < publicStartTime || now >= publicEndTime) throw;
+		if (now < publicStartTime || now >= publicEndTime) return;
 		_;
 	}
 
 	//May only be called by BTC Suisse
 	modifier only_btcs() {
-		if (msg.sender != btcsAddress) throw;
+		if (msg.sender != btcsAddress) return;
 		_;
 	}
 
 	//May only be called by the owner address
 	modifier only_owner() {
-		if (msg.sender != ownerAddress) throw;
+		if (msg.sender != ownerAddress) return;
 		_;
 	}
 
 	//May only be called if the crowdfund has not been halted
 	modifier is_not_halted() {
-		if (halted) throw;
+		if (halted) return;
 		_;
 	}
 
@@ -334,9 +328,9 @@ contract Contribution is SafeMath {
 		returns (uint o_amount)
 	{
 		o_amount = safeDiv(safeMul(msg.value, _rate), 1 ether);
-		if (o_amount > _remaining) throw;
-		if (!multisigAddress.send(msg.value)) throw;
-		if (!gupToken.createToken(msg.sender, o_amount)) throw;
+		if (o_amount > _remaining) return;
+		if (!multisigAddress.send(msg.value)) return;
+		if (!gupToken.createToken(msg.sender, o_amount)) return;
 		gupSold += o_amount;
 		etherRaised += msg.value;
 	}
@@ -369,6 +363,6 @@ contract Contribution is SafeMath {
 	function drain()
 		only_owner
 	{
-		if (!ownerAddress.send(this.balance)) throw;
+		if (!ownerAddress.send(this.balance)) return;
 	}
 }
